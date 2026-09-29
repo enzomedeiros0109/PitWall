@@ -10,8 +10,8 @@ const queryClient = new QueryClient()
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      {/* <HomePage /> */}
-      <GrandPrixPage country_name='Monaco'/>
+      <HomePage />
+      {/* <GrandPrixPage country_name='Australia'/> */}
     </QueryClientProvider>
   </StrictMode>
 )

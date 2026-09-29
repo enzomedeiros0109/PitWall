@@ -4,6 +4,7 @@ import { SessionSchema } from "@/schemas/sessions-schema"
 import { CalendarDaysIcon, MapPin, X } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { getDriversInfo, getSessionResult } from "@/api/api"
+import { formatDate } from "@/hooks/formatDate"
 
 type Session = z.infer<typeof SessionSchema>[number]
 
@@ -11,28 +12,22 @@ type Props = {
    session: Session
 }
 
-const formatDate = (date: string) => {
-   return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      timeZone: "UTC",
-   }).format(new Date(date))
-}
-
-const handleBoolean = (isCancelled: boolean) => {
-   return isCancelled === true ? "Yes" : "No"
+function formatLocalTime(date: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(date))
 }
 
 const SessionCard = ({ session }: Props) => {
 
    const driversInfo = useQuery({
-      queryKey: ['driversInfo'],
+      queryKey: ['driversInfo', session.session_key],
       queryFn: () => getDriversInfo(session.session_key)
    })
 
    const sessionResults = useQuery({
-      queryKey: ['sessionResults'],
+      queryKey: ['sessionResults', session.session_key],
       queryFn: () => getSessionResult(session.session_key)
    })
 
@@ -46,46 +41,52 @@ const SessionCard = ({ session }: Props) => {
 
                      <div className="flex gap-1 items-center">
                         <CalendarDaysIcon className="size-5" />
-                        <p>{formatDate(session.date_start)}</p>
+                        <p>{formatDate(session.date_start)} - {formatLocalTime(session.date_start)}</p>
                      </div>
 
-                     <div className="flex gap-1 items-center">
-                        <MapPin className="size-5" />
-                        <p>{session.country_name}, {session.location}</p>
-                     </div>
-
-                     <div className="flex gap-1 items-center">
-                        <X className="size-5" />
-                        <p>Cancelled: {handleBoolean(session.is_cancelled)}</p>
-                     </div>
+                     {
+                        session.is_cancelled &&
+                        <div className="flex gap-1 items-center">
+                           <p className="text-red-500 font-bold">Session cancelled</p>
+                        </div>
+                     }
 
                   </div>
                </CardDescription>
             </CardHeader>
             <CardFooter>
                <div className="flex flex-col gap-4">
-                  {sessionResults.data?.map((result) => {
-                     const driver = driversInfo.data?.find(
-                        (driver) => driver.driver_number === result.driver_number,
-                     )
+                  {sessionResults.isPending || driversInfo.isPending ? (
+                     <p>Loading session results…</p>
+                  ) : sessionResults.isError || driversInfo.isError ? (
+                     <p>Could not load this session’s results.</p>
+                  ) : sessionResults.data?.length === 0 ? (
+                     <p>No results available for this session.</p>
+                  ) : (
+                     sessionResults.data
+                        ?.filter((result) => result.session_key === session.session_key)
+                        .map((result) => {
+                           const driver = driversInfo.data?.find(
+                              (driver) => driver.driver_number === result.driver_number,
+                           )
 
-                     if (!driver) return null
+                           if (!driver) return null
 
-                     return (
-                        <div key={result.driver_number} className="flex gap-2">
-                           <p
-                              className="border-l-4 pl-2"
-                              style={{ borderColor: `#${driver.team_colour}` }}
-                           >
-                              {result.position}
-                           </p>
-                           <p>
-                              {driver.first_name} {driver.last_name}
-                           </p>
-                        </div>
-                     )
-                  })}
-
+                           return (
+                              <div key={result.driver_number} className="flex gap-2">
+                                 <p
+                                    className="border-l-4 pl-2"
+                                    style={{ borderColor: `#${driver.team_colour}` }}
+                                 >
+                                    {result.position ? result.position : 'DNF'}
+                                 </p>
+                                 <p>
+                                    {driver.broadcast_name}
+                                 </p>
+                              </div>
+                           )
+                        })
+                  )}
                </div>
             </CardFooter>
          </Card>
