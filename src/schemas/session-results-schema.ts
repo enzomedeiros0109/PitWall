@@ -1,23 +1,37 @@
 import { z } from "zod";
 
-export const SessionResultSchema = z.array(
-  z.object({
-    dnf: z.boolean(),
-    dns: z.boolean(),
-    dsq: z.boolean(),
-    driver_number: z.number().int(),
-    duration: z.union([
-      z.number(),
-      z.array(z.number().nullable()),
-    ]).nullable(),
-    gap_to_leader: z.union([
-      z.number(),
-      z.string(),
-      z.array(z.union([z.number(), z.string(), z.null()])),
-    ]).nullable(),
-    number_of_laps: z.number().int(),
-    meeting_key: z.number().int(),
-    position: z.number().int().nullable(),
-    session_key: z.number().int(),
+const JolpicaResultSchema = z.object({
+  position: z.string(),
+  positionText: z.string().optional(),
+  Driver: z.object({
+    driverId: z.string(),
+    givenName: z.string(),
+    familyName: z.string(),
+    code: z.string().optional(),
   }),
+  Constructor: z.object({ name: z.string() }).optional(),
+});
+
+const JolpicaRaceResultsSchema = z.object({
+  Results: z.array(JolpicaResultSchema).optional(),
+  SprintResults: z.array(JolpicaResultSchema).optional(),
+  QualifyingResults: z.array(JolpicaResultSchema).optional(),
+}).passthrough();
+
+export const SessionResultSchema = z.object({
+  MRData: z.object({
+    RaceTable: z.object({
+      Races: z.array(JolpicaRaceResultsSchema),
+    }),
+  }),
+}).transform(({ MRData }) =>
+  MRData.RaceTable.Races.flatMap((race) =>
+    race.Results ?? race.SprintResults ?? race.QualifyingResults ?? [],
+  ).map((result) => ({
+    driver_id: result.Driver.driverId,
+    driver_name: `${result.Driver.givenName} ${result.Driver.familyName}`,
+    driver_code: result.Driver.code ?? result.Driver.driverId.slice(0, 3).toUpperCase(),
+    constructor_name: result.Constructor?.name ?? "",
+    position: result.positionText ?? result.position,
+  })),
 );

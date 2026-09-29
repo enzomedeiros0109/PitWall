@@ -1,4 +1,4 @@
-import { getSessions } from "@/api/api"
+import { getRaces } from "@/api/api"
 import DriversStandings from "@/components/drivers-standings"
 import F1Logo from "@/components/f1-logo"
 import GrandPixCard from "@/components/grand-prix-card"
@@ -7,19 +7,20 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useQuery } from "@tanstack/react-query"
 
 const HomePage = () => {
+   const season = new Date().getFullYear()
    const { data } = useQuery({
-      queryKey: ['sessions'],
-      queryFn: getSessions
+      queryKey: ['races', season],
+      queryFn: () => getRaces(season),
    })
 
    const now = Date.now()
-   const firstUpcomingIndex = data?.reduce((nearestIndex, session, index, sessions) => {
-      const sessionStart = new Date(session.date_start).getTime()
-      if (sessionStart <= now) return nearestIndex
+   const firstUpcomingIndex = data?.reduce((nearestIndex, race, index, races) => {
+      const raceStart = Date.parse(`${race.date}T${race.time ?? '23:59:59Z'}`)
+      if (raceStart <= now) return nearestIndex
 
       if (
          nearestIndex === -1 ||
-         sessionStart < new Date(sessions[nearestIndex].date_start).getTime()
+         raceStart < Date.parse(`${races[nearestIndex].date}T${races[nearestIndex].time ?? '23:59:59Z'}`)
       ) {
          return index
       }
@@ -29,7 +30,6 @@ const HomePage = () => {
 
    return (
       <div className="flex flex-col items-center gap-8 p-8">
-
          <div>
             <F1Logo />
          </div>
@@ -44,10 +44,10 @@ const HomePage = () => {
                }}
             >
                <CarouselContent className="-ml-1">
-                  {data.map((session) => (
-                     <CarouselItem key={session.session_key} className="basis-1/2 pl-1 lg:basis-1/3">
+                  {data.map((race) => (
+                     <CarouselItem key={`${race.season}-${race.round}`} className="basis-1/2 pl-1 lg:basis-1/3">
                         <div className="p-1">
-                           <GrandPixCard {...session} />
+                           <GrandPixCard {...race} />
                         </div>
                      </CarouselItem>
                   ))}
