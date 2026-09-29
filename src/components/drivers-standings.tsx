@@ -1,27 +1,11 @@
-import { getDriversInfo, getDriversStandings } from "@/api/api"
+import { getDriversStandings } from "@/api/api"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { useQuery } from "@tanstack/react-query"
 
 const DriversStandings = () => {
-
    const driversStandingsQuery = useQuery({
       queryKey: ['driversStandings'],
       queryFn: getDriversStandings,
-      staleTime: 60_000,
-      retry: (failureCount, error) => {
-         const status = (error as { response?: { status?: number } }).response?.status
-         return status !== 429 && failureCount < 2
-      },
-   })
-
-   const driversQuery = useQuery({
-      queryKey: ['drivers'],
-      queryFn: () => getDriversInfo(),
-      staleTime: 60_000,
-      retry: (failureCount, error) => {
-         const status = (error as { response?: { status?: number } }).response?.status
-         return status !== 429 && failureCount < 2
-      },
    })
 
    return (
@@ -35,31 +19,23 @@ const DriversStandings = () => {
                </TableRow>
             </TableHeader>
             <TableBody>
-               {(driversStandingsQuery.isPending || driversQuery.isPending) && (
+               {driversStandingsQuery.isPending && (
                   <TableRow>
                      <TableCell colSpan={3} className="text-center">Loading driver standings…</TableCell>
                   </TableRow>
                )}
-               {(driversStandingsQuery.isError || driversQuery.isError) && (
+               {driversStandingsQuery.isError && (
                   <TableRow>
-                     <TableCell colSpan={3} className="text-center">Could not load driver standings. The API may be rate limited.</TableCell>
+                     <TableCell colSpan={3} className="text-center">Could not load driver standings.</TableCell>
                   </TableRow>
                )}
-               {driversStandingsQuery.data?.map((standing) => {
-                  const driver = driversQuery.data?.find(
-                     (driver) => driver.driver_number === standing.driver_number,
-                  )
-
-                  if (!driver) return null
-
-                  return (
-                     <TableRow key={standing.driver_number}>
-                        <TableCell className="text-center">{standing.position_current}</TableCell>
-                        <TableCell className="text-center">{driver.name_acronym}</TableCell>
-                        <TableCell className="text-center">{standing.points_current}</TableCell>
-                     </TableRow>
-                  )
-               })}
+               {driversStandingsQuery.data?.map((standing) => (
+                  <TableRow key={standing.driver_id}>
+                     <TableCell className="text-center">{standing.position}</TableCell>
+                     <TableCell className="text-center">{standing.driver_code}</TableCell>
+                     <TableCell className="text-center">{standing.points}</TableCell>
+                  </TableRow>
+               ))}
             </TableBody>
          </Table>
       </div>

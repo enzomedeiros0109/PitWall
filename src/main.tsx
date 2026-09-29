@@ -24,7 +24,7 @@ createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/grand-prix/:country_name" element={<GrandPrixPage />} />
+          <Route path="/grand-prix/:season/:round" element={<GrandPrixPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
