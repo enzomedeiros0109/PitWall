@@ -5,18 +5,12 @@ import { CalendarDaysIcon, MapPin, X } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { getDriversInfo, getSessionResult } from "@/api/api"
 import { formatDate } from "@/hooks/formatDate"
+import { formatLocalTime } from "@/hooks/formatLocalTime"
 
 type Session = z.infer<typeof SessionSchema>[number]
 
 type Props = {
    session: Session
-}
-
-function formatLocalTime(date: string): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(date))
 }
 
 const SessionCard = ({ session }: Props) => {

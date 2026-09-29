@@ -2,6 +2,8 @@ import { Button } from "@base-ui/react"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { Calendar, Clock, MapPin } from "lucide-react"
 import { getSessionImage } from "@/data/session-images"
+import { formatLocalTime } from "@/hooks/formatLocalTime"
+import { useNavigate } from "react-router"
 
 type Props = {
    country_name: string,
@@ -17,8 +19,9 @@ function formatDate(date: string): string {
    return `${day}/${month}/${year}`
 }
 
-const GrandPixCard = ({ country_name, date_start, gmt_offset, location, circuit_short_name }: Props) => {
+const GrandPixCard = ({ country_name, date_start, location, circuit_short_name }: Props) => {
    const image = getSessionImage(circuit_short_name, location)
+   const navigate = useNavigate()
 
    return (
       <Card className="relative mx-auto w-full max-w-sm pt-0">
@@ -39,7 +42,7 @@ const GrandPixCard = ({ country_name, date_start, gmt_offset, location, circuit_
 
                <div className="flex items-center gap-1">
                   <Clock className="size-4" />
-                  <p>{`${gmt_offset}`}</p>
+                  <p>{formatLocalTime(date_start)}</p>
                </div>
 
                <div className="flex items-center gap-1">
@@ -49,8 +52,15 @@ const GrandPixCard = ({ country_name, date_start, gmt_offset, location, circuit_
 
             </CardDescription>
          </CardHeader>
-         <CardFooter>
-            <Button className="w-full">View Grand Prix</Button>
+         <CardFooter className="hover:bg-accent">
+            <Button
+               className="w-full cursor-pointer "
+               onClick={() => {
+                  navigate(`/grand-prix/${encodeURIComponent(country_name)}`)
+               }}
+            >
+               <p className="text-lg">View Grand Prix</p>
+            </Button>
          </CardFooter>
       </Card>
    )
