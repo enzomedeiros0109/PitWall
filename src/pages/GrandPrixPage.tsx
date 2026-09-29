@@ -3,16 +3,18 @@ import SessionCard from "@/components/session-card"
 import { formatDate } from "@/hooks/formatDate"
 import { useQuery } from "@tanstack/react-query"
 import { Calendar } from "lucide-react"
+import { useParams } from "react-router"
 
-type Props = {
-  country_name: string
-}
-
-const GrandPrixPage = ({ country_name }: Props) => {
+const GrandPrixPage = () => {
+  const { country_name } = useParams()
 
   const { data } = useQuery({
-    queryKey: ['Grand Prix Sessions'],
-    queryFn: () => getLastestSessionsByCountry(country_name)
+    queryKey: ['Grand Prix Sessions', country_name],
+    queryFn: () => {
+      if (!country_name) throw new Error("Grand Prix country is missing")
+      return getLastestSessionsByCountry(country_name)
+    },
+    enabled: Boolean(country_name),
   })
 
   return (

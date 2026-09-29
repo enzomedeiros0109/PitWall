@@ -8,12 +8,22 @@ const DriversStandings = ({ }: Props) => {
 
    const driversStandingsQuery = useQuery({
       queryKey: ['driversStandings'],
-      queryFn: getDriversStandings
+      queryFn: getDriversStandings,
+      staleTime: 60_000,
+      retry: (failureCount, error) => {
+         const status = (error as { response?: { status?: number } }).response?.status
+         return status !== 429 && failureCount < 2
+      },
    })
 
    const driversQuery = useQuery({
       queryKey: ['drivers'],
-      queryFn: getDriversInfo
+      queryFn: getDriversInfo,
+      staleTime: 60_000,
+      retry: (failureCount, error) => {
+         const status = (error as { response?: { status?: number } }).response?.status
+         return status !== 429 && failureCount < 2
+      },
    })
 
    return (
@@ -27,6 +37,16 @@ const DriversStandings = ({ }: Props) => {
                </TableRow>
             </TableHeader>
             <TableBody>
+               {(driversStandingsQuery.isPending || driversQuery.isPending) && (
+                  <TableRow>
+                     <TableCell colSpan={3} className="text-center">Loading driver standings…</TableCell>
+                  </TableRow>
+               )}
+               {(driversStandingsQuery.isError || driversQuery.isError) && (
+                  <TableRow>
+                     <TableCell colSpan={3} className="text-center">Could not load driver standings. The API may be rate limited.</TableCell>
+                  </TableRow>
+               )}
                {driversStandingsQuery.data?.map((standing) => {
                   const driver = driversQuery.data?.find(
                      (driver) => driver.driver_number === standing.driver_number,
