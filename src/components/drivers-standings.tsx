@@ -2,9 +2,7 @@ import { getDriversInfo, getDriversStandings } from "@/api/api"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { useQuery } from "@tanstack/react-query"
 
-type Props = {}
-
-const DriversStandings = ({ }: Props) => {
+const DriversStandings = () => {
 
    const driversStandingsQuery = useQuery({
       queryKey: ['driversStandings'],
@@ -18,7 +16,7 @@ const DriversStandings = ({ }: Props) => {
 
    const driversQuery = useQuery({
       queryKey: ['drivers'],
-      queryFn: getDriversInfo,
+      queryFn: () => getDriversInfo(),
       staleTime: 60_000,
       retry: (failureCount, error) => {
          const status = (error as { response?: { status?: number } }).response?.status
