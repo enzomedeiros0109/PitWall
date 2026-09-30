@@ -6,6 +6,7 @@ import { formatDate } from "@/hooks/formatDate"
 import { formatLocalTime } from "@/hooks/formatLocalTime"
 import type { z } from "zod"
 import { SessionSchema } from "@/schemas/sessions-schema"
+import { getTeamColor } from "@/lib/team-colors"
 
 type Session = z.infer<typeof SessionSchema>
 
@@ -25,9 +26,9 @@ const SessionCard = ({ session }: Props) => {
    })
 
    return (
-      <Card className="relative mx-auto w-full max-w-sm">
+      <Card className="relative w-120">
          <CardHeader className="flex flex-col justify-center">
-            <CardTitle className="text-3xl text-center">{session.session_name}</CardTitle>
+            <CardTitle className="text-3xl text-center capitalize">{session.session_name}</CardTitle>
             <CardDescription>
                <div className="flex flex-col gap-2">
                   <div className="flex gap-1 items-center">
@@ -43,26 +44,33 @@ const SessionCard = ({ session }: Props) => {
                </div>
             </CardDescription>
          </CardHeader>
-         <CardFooter>
-            <div className="flex flex-col gap-4">
-               {session.result_type === null ? (
-                  <p>Jolpica does not provide results for this session.</p>
-               ) : sessionResults.isPending ? (
-                  <p>Loading session results…</p>
-               ) : sessionResults.isError ? (
-                  <p>Could not load this session’s results.</p>
-               ) : sessionResults.data.length === 0 ? (
-                  <p>No results available yet.</p>
-               ) : (
-                  sessionResults.data.map((result) => (
-                     <div key={result.driver_id} className="flex gap-2">
-                        <p className="border-l-4 pl-2">{result.position}</p>
-                        <p>{result.driver_code} · {result.driver_name}</p>
-                     </div>
-                  ))
-               )}
-            </div>
-         </CardFooter>
+         {session.result_type !== null &&
+            <CardFooter>
+               <div className="flex flex-col gap-4">
+                  {sessionResults.isError ? (
+                     <p>Could not load this session’s results.</p>
+                  ) : sessionResults.data?.length === 0 ? (
+                     <p>No results available yet.</p>
+                  ) : (
+                     sessionResults.data?.map((result) => (
+                        <div key={result.driver_id} className="flex items-center gap-3">
+                           {result.position === 'R' ?
+                              <p className="w-9 p-1 text-center text-red-500 tabular-nums bg-white/10 rounded-md">DNF</p>
+                              :
+                              <p className="w-9 p-1 text-center tabular-nums bg-white/10 rounded-md">{result.position}</p>}
+                           <span
+                              aria-hidden="true"
+                              className="h-5 w-1"
+                              style={{ backgroundColor: getTeamColor(result.constructor_id) }}
+                           />
+
+                           <p className="text-lg">{result.driver_name}</p>
+                        </div>
+                     ))
+                  )}
+               </div>
+            </CardFooter>
+         }
       </Card>
    )
 }
