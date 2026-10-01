@@ -30,9 +30,9 @@ const GrandPrixPage = () => {
     session.year === season &&
     session.location.toLowerCase() === raceQuery.data?.location.toLowerCase()
   )
-  const raceQualySessions = selectedRaceSessions.filter(
-    (session) => !session.session_type.includes('Practice')
-  )
+  const raceQualySessions = selectedRaceSessions
+    .filter((session) => ['Qualifying', 'Sprint', 'Race'].includes(session.session_type))
+    .sort((a, b) => Date.parse(a.date_start) - Date.parse(b.date_start))
   const practiceSessions = selectedRaceSessions
     .filter((session) => session.session_type.includes('Practice'))
     .slice(0, 3)
@@ -67,6 +67,7 @@ const GrandPrixPage = () => {
           <SessionCard
             key={session.session_key}
             session={session}
+            isPractice={false}
           />
         ))}
       </div>
@@ -76,6 +77,7 @@ const GrandPrixPage = () => {
           <SessionCard
             key={session.session_key}
             session={session}
+            isPractice={true}
           />
         ))}
       </div>
