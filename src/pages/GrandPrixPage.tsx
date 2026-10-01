@@ -1,30 +1,43 @@
 import { getRaceByRound } from "@/api/jolpicaf1-api"
+import { getAllSessions } from "@/api/openf1-api"
 import SessionCard from "@/components/session-card"
-import { formatDate } from "@/hooks/formatDate"
 import { useQuery } from "@tanstack/react-query"
-import { ArrowDown, ArrowLeft, Calendar, LoaderCircle } from "lucide-react"
+import { ArrowLeft, LoaderCircle } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
 
 const GrandPrixPage = () => {
+  const navigate = useNavigate()
   const { season: seasonParam, round: roundParam } = useParams()
   const season = Number(seasonParam)
   const round = Number(roundParam)
-  const validRoute = Number.isInteger(season) && Number.isInteger(round)
-  const navigate = useNavigate()
 
-  const { data, isPending, isFetching } = useQuery({
+  const raceQuery = useQuery({
     queryKey: ['grandPrix', season, round],
     queryFn: () => getRaceByRound(season, round),
-    enabled: validRoute,
+    enabled: Number.isInteger(season) && Number.isInteger(round),
   })
 
-  const sessionsResults = useQuery({
-      queryKey: ['sessionsResults'],
-      queryFn: () => getAllSessions(country_name)
-   })
+  const country_name = raceQuery.data?.country_name
 
+  const sessionsQuery = useQuery({
+    queryKey: ['sessions', country_name],
+    queryFn: () => getAllSessions(country_name!),
+    enabled: Boolean(country_name),
+  })
 
-  if (isPending || isFetching) {
+  const sessions = sessionsQuery.data ?? []
+  const selectedRaceSessions = sessions.filter((session) =>
+    session.year === season &&
+    session.location.toLowerCase() === raceQuery.data?.location.toLowerCase()
+  )
+  const raceQualySessions = selectedRaceSessions.filter(
+    (session) => !session.session_type.includes('Practice')
+  )
+  const practiceSessions = selectedRaceSessions
+    .filter((session) => session.session_type.includes('Practice'))
+    .slice(0, 3)
+
+  if (raceQuery.isPending || sessionsQuery.isPending) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-8">
         <LoaderCircle
@@ -36,12 +49,8 @@ const GrandPrixPage = () => {
     )
   }
 
-  if (!data) {
-    return <p>Race not found.</p>
-  }
-
   return (
-    <>
+    <div>
       <div className="p-4">
         <button
           className="flex items-center justify-center p-2 bg-accent rounded-md cursor-pointer hover:bg-accent-foreground/20"
@@ -52,7 +61,27 @@ const GrandPrixPage = () => {
           <ArrowLeft className="size-8" />
         </button>
       </div>
-    </>
+
+      <div>
+        {raceQualySessions.map((session) => (
+          <SessionCard
+            key={session.session_key}
+            session={session}
+          />
+        ))}
+      </div>
+
+      <div>
+        {practiceSessions.map((session) => (
+          <SessionCard
+            key={session.session_key}
+            session={session}
+          />
+        ))}
+      </div>
+
+
+    </div>
   )
 }
 
