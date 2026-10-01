@@ -1,4 +1,4 @@
-import { getRaceByRound } from "@/api/api"
+import { getRaceByRound } from "@/api/jolpicaf1-api"
 import SessionCard from "@/components/session-card"
 import { formatDate } from "@/hooks/formatDate"
 import { useQuery } from "@tanstack/react-query"
@@ -18,8 +18,11 @@ const GrandPrixPage = () => {
     enabled: validRoute,
   })
 
-  const firstSession = data?.sessions[0]
-  const lastSession = data?.sessions.at(-1)
+  const sessionsResults = useQuery({
+      queryKey: ['sessionsResults'],
+      queryFn: () => getAllSessions(country_name)
+   })
+
 
   if (isPending || isFetching) {
     return (
@@ -37,16 +40,6 @@ const GrandPrixPage = () => {
     return <p>Race not found.</p>
   }
 
-  const sessions = data.sessions
-  const isSprintWeekend = sessions.some(
-    (session) => session.session_name === "Sprint",
-  )
-  const firstRowSize = isSprintWeekend ? 2 : 3
-  const sessionRows = [
-    sessions.slice(0, firstRowSize),
-    sessions.slice(firstRowSize),
-  ]
-
   return (
     <>
       <div className="p-4">
@@ -58,15 +51,6 @@ const GrandPrixPage = () => {
         >
           <ArrowLeft className="size-8" />
         </button>
-      </div>
-      <div className="flex flex-col gap-12 items-center pt-8">
-        {sessionRows.map((row, index) => (
-          <div key={index} className="flex gap-8">
-            {row.map((session) => (
-              <SessionCard key={session.id} session={session} />
-            ))}
-          </div>
-        ))}
       </div>
     </>
   )

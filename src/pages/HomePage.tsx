@@ -1,4 +1,4 @@
-import { getRaces } from "@/api/api"
+import { getRaces } from "@/api/jolpicaf1-api"
 import DriversStandings from "@/components/drivers-standings"
 import F1Logo from "@/components/f1-logo"
 import GrandPixCard from "@/components/grand-prix-card"
