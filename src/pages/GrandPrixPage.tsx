@@ -1,11 +1,14 @@
 import { getRaceByRound } from "@/api/jolpicaf1-api"
 import { getAllSessions } from "@/api/openf1-api"
 import SessionCard from "@/components/session-card"
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, LoaderCircle } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
+import { formatDate } from "@/hooks/formatDate"
 
 const GrandPrixPage = () => {
+  const [expandedPracticeSessionKey, setExpandedPracticeSessionKey] = useState<number | null>(null)
   const navigate = useNavigate()
   const { season: seasonParam, round: roundParam } = useParams()
   const season = Number(seasonParam)
@@ -20,8 +23,8 @@ const GrandPrixPage = () => {
   const country_name = raceQuery.data?.country_name
 
   const sessionsQuery = useQuery({
-    queryKey: ['sessions', country_name],
-    queryFn: () => getAllSessions(country_name!),
+    queryKey: ['sessions', season, country_name],
+    queryFn: () => getAllSessions(season, country_name!),
     enabled: Boolean(country_name),
   })
 
@@ -33,6 +36,7 @@ const GrandPrixPage = () => {
   const raceQualySessions = selectedRaceSessions
     .filter((session) => ['Qualifying', 'Sprint', 'Race'].includes(session.session_type))
     .sort((a, b) => Date.parse(a.date_start) - Date.parse(b.date_start))
+
   const practiceSessions = selectedRaceSessions
     .filter((session) => session.session_type.includes('Practice'))
     .slice(0, 3)
@@ -62,22 +66,34 @@ const GrandPrixPage = () => {
         </button>
       </div>
 
-      <div>
+      <div className="flex flex-col gap-4 p-8">
+          <h1 className="text-5xl font-bold">{raceQualySessions[0].country_name} Grand Prix</h1>
+          <div className="flex gap-8 items-center">
+            <h2 className="text-3xl font-semibold">{raceQualySessions[0].location}</h2>
+            <h2 className="text-xl text-white/70">{formatDate(practiceSessions[0].date_start)} - {formatDate(raceQualySessions[raceQualySessions.length - 1].date_end)}</h2>
+          </div>
+      </div>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-center justify-items-center gap-4 p-4">
         {raceQualySessions.map((session) => (
           <SessionCard
             key={session.session_key}
             session={session}
-            isPractice={false}
           />
         ))}
       </div>
 
-      <div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-center justify-items-center gap-4 p-4 pt-0">
         {practiceSessions.map((session) => (
           <SessionCard
             key={session.session_key}
             session={session}
-            isPractice={true}
+            isPracticeResultsOpen={expandedPracticeSessionKey === session.session_key}
+            onPracticeResultsToggle={() =>
+              setExpandedPracticeSessionKey((current) =>
+                current === session.session_key ? null : session.session_key,
+              )
+            }
           />
         ))}
       </div>

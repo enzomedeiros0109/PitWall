@@ -1,11 +1,20 @@
 import { getDrivers, getTeamsStandings } from "@/api/openf1-api"
+import { useLatestCompletedRace } from "@/hooks/useLatestCompletedRace"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { useQuery } from "@tanstack/react-query"
 
-const TeamsStandings = () => {
+type TeamsStandingsProps = {
+   year: number
+}
+
+const TeamsStandings = ({ year }: TeamsStandingsProps) => {
+   const raceQuery = useLatestCompletedRace(year)
+   const raceSessionKey = raceQuery.session?.session_key
+
    const teamsStandingsQuery = useQuery({
-      queryKey: ['teamsStandings'],
-      queryFn: () => getTeamsStandings(),
+      queryKey: ['teamsStandings', raceSessionKey],
+      queryFn: () => getTeamsStandings(raceSessionKey!),
+      enabled: raceSessionKey !== undefined,
    })
 
    const drivers = useQuery({
@@ -28,6 +37,21 @@ const TeamsStandings = () => {
                </TableRow>
             </TableHeader>
             <TableBody>
+               {(raceQuery.isPending || (raceSessionKey !== undefined && teamsStandingsQuery.isPending)) && (
+                  <TableRow>
+                     <TableCell colSpan={3} className="text-center">Loading team standings…</TableCell>
+                  </TableRow>
+               )}
+               {(raceQuery.isError || teamsStandingsQuery.isError) && (
+                  <TableRow>
+                     <TableCell colSpan={3} className="text-center">Could not load team standings.</TableCell>
+                  </TableRow>
+               )}
+               {raceQuery.isSuccess && !raceQuery.session && (
+                  <TableRow>
+                     <TableCell colSpan={3} className="text-center">No completed race this season yet.</TableCell>
+                  </TableRow>
+               )}
                {teamsStandingsQuery.data?.map((team) => {
                   const teamColor = teamColorsByName.get(team.team_name)
 
@@ -43,7 +67,7 @@ const TeamsStandings = () => {
                            <div
                               aria-hidden="true"
                               className="h-6 w-1 shrink-0"
-                              style={{ backgroundColor: 1 ? `#${teamColor}` : "var(--muted-foreground)" }}
+                              style={{ backgroundColor: teamColor ? `#${teamColor}` : "var(--muted-foreground)" }}
                            />
                            {team.team_name}
                         </TableCell>

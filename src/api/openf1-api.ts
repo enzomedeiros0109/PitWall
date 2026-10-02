@@ -15,34 +15,41 @@ export async function getDrivers(session_key = 'latest') {
    return OpenF1DriverSchema.parse(response.data)
 }
 
-export async function getDriversStandings(session_key = 'latest') {
+export async function getDriversStandings(session_key: number) {
    const response = await api.get(`championship_drivers?session_key=${session_key}`)
 
    return OpenF1DriverStandingSchema.parse(response.data)
 }
 
-export async function getTeamsStandings(session_key = 'latest'){
+export async function getTeamsStandings(session_key: number){
    const response = await api.get(`championship_teams?session_key=${session_key}`)
 
    return OpenF1TeamsStandingsSchema.parse(response.data)
 }
 
-export async function getPracticeSessions(country_name: string) {
-   const response = await api.get(`sessions?country_name=${country_name}&session_name=Practice`)
+function getSessionsParams(year: number, country_name?: string, session_name?: string) {
+   const params = new URLSearchParams({ year: String(year) })
+   if (country_name) params.set('country_name', country_name)
+   if (session_name) params.set('session_name', session_name)
+   return params.toString()
+}
+
+export async function getPracticeSessions(country_name: string, year: number) {
+   const response = await api.get(`sessions?${getSessionsParams(year, country_name, 'Practice')}`)
 
    // Retorna apenas sessões de treino
    return OpenF1SessionSchema.parse(response.data)
 }
 
-export async function getRaceAndQualySessions(country_name: string) {
-   const response = await api.get(`sessions?country_name=${country_name}`)
+export async function getRaceAndQualySessions(country_name: string, year: number) {
+   const response = await api.get(`sessions?${getSessionsParams(year, country_name)}`)
 
    // Retorna sessões de corrida e qualificação
    return OpenF1SessionSchema.parse(response.data).filter((session) => !(session.session_type.includes('Practice')))
 }
 
-export async function getAllSessions(country_name: string) {
-   const response = await api.get(`sessions?country_name=${country_name}`)
+export async function getAllSessions(year: number, country_name?: string) {
+   const response = await api.get(`sessions?${getSessionsParams(year, country_name)}`)
 
    // Retorna todas as sessões
    return OpenF1SessionSchema.parse(response.data)

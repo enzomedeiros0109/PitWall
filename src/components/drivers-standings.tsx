@@ -1,8 +1,15 @@
 import { getDrivers, getDriversStandings } from "@/api/openf1-api"
+import { useLatestCompletedRace } from "@/hooks/useLatestCompletedRace"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
 import { useQuery } from "@tanstack/react-query"
 
-const DriversStandings = () => {
+type DriversStandingsProps = {
+   year: number
+}
+
+const DriversStandings = ({ year }: DriversStandingsProps) => {
+   const raceQuery = useLatestCompletedRace(year)
+   const raceSessionKey = raceQuery.session?.session_key
 
    const drivers = useQuery({
       queryKey: ['drivers'],
@@ -10,8 +17,9 @@ const DriversStandings = () => {
    })
 
    const driversStandingsQuery = useQuery({
-      queryKey: ['driversStandings'],
-      queryFn: () => getDriversStandings(),
+      queryKey: ['driversStandings', raceSessionKey],
+      queryFn: () => getDriversStandings(raceSessionKey!),
+      enabled: raceSessionKey !== undefined,
    })
 
    const driversByNumber = new Map(
@@ -29,14 +37,19 @@ const DriversStandings = () => {
                </TableRow>
             </TableHeader>
             <TableBody>
-               {driversStandingsQuery.isPending && (
+               {(raceQuery.isPending || (raceSessionKey !== undefined && driversStandingsQuery.isPending)) && (
                   <TableRow>
                      <TableCell colSpan={3} className="text-center">Loading driver standings…</TableCell>
                   </TableRow>
                )}
-               {driversStandingsQuery.isError && (
+               {(raceQuery.isError || driversStandingsQuery.isError) && (
                   <TableRow>
                      <TableCell colSpan={3} className="text-center">Could not load driver standings.</TableCell>
+                  </TableRow>
+               )}
+               {raceQuery.isSuccess && !raceQuery.session && (
+                  <TableRow>
+                     <TableCell colSpan={3} className="text-center">No completed race this season yet.</TableCell>
                   </TableRow>
                )}
                {driversStandingsQuery.data?.map((standing) => {
@@ -46,7 +59,7 @@ const DriversStandings = () => {
                      <TableRow key={standing.driver_number}>
                         <TableCell
                            className="text-center font-bold"
-                           style={{ color: standing.position_current === 1 ? '#FFD700' : standing.position_current === 2 ? '#C0C0C0' : standing.position_current === 3 ? '#CD7F32' : ''}}
+                           style={{ color: standing.position_current === 1 ? '#FFD700' : standing.position_current === 2 ? '#C0C0C0' : standing.position_current === 3 ? '#CD7F32' : '' }}
                         >
                            {standing.position_current}
                         </TableCell>
