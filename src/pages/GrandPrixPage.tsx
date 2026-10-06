@@ -1,20 +1,40 @@
 import { getRaceByRound } from "@/api/jolpicaf1-api"
 import { getAllSessions } from "@/api/openf1-api"
 import SessionCard from "@/components/session-card"
-import { useState } from "react"
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, LoaderCircle } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
 import { formatDate } from "@/hooks/formatDate"
 import { getSessionImage } from "@/data/session-images"
-import { Card } from "@/components/ui/card"
+
+function getScheduledStart(date: string, time: string | null): number {
+  return Date.parse(`${date}T${time ?? '23:59:59Z'}`)
+}
+
+function formatScheduledDate(date: string, time: string | null): string {
+  const options: Intl.DateTimeFormatOptions = { dateStyle: 'medium' }
+  if (time) options.timeStyle = 'short'
+
+  return new Intl.DateTimeFormat('pt-BR', options).format(
+    new Date(`${date}T${time ?? '00:00:00Z'}`),
+  )
+}
 
 const GrandPrixPage = () => {
   const [expandedPracticeSessionKey, setExpandedPracticeSessionKey] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
   const navigate = useNavigate()
   const { season: seasonParam, round: roundParam } = useParams()
   const season = Number(seasonParam)
   const round = Number(roundParam)
+
+  // Keep the schedule view in sync when a session starts while the page is open.
+  useEffect(() => {
+    const intervalId = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(intervalId)
+  }, [])
 
   const raceQuery = useQuery({
     queryKey: ['grandPrix', season, round],
@@ -31,32 +51,77 @@ const GrandPrixPage = () => {
   })
 
   const sessions = sessionsQuery.data ?? []
+  const scheduledSessions = raceQuery.data?.sessions ?? []
   const selectedRaceSessions = sessions.filter((session) =>
     session.year === season &&
     session.location.toLowerCase() === raceQuery.data?.location.toLowerCase()
   )
-  const raceQualySessions = selectedRaceSessions
-    .filter((session) => ['Qualifying', 'Sprint', 'Race'].includes(session.session_type))
-    .sort((a, b) => Date.parse(a.date_start) - Date.parse(b.date_start))
-
-  const practiceSessions = selectedRaceSessions
-    .filter((session) => session.session_type.includes('Practice'))
-    .slice(0, 3)
-  const backgroundSession = selectedRaceSessions[0]
-  const backgroundImage = backgroundSession
-    ? getSessionImage(backgroundSession.circuit_short_name, backgroundSession.location)
+  const backgroundImage = raceQuery.data
+    ? getSessionImage(raceQuery.data.circuit_short_name, raceQuery.data.location)
     : undefined
+  const hasAnySessionStarted = scheduledSessions.some(
+    (session) => getScheduledStart(session.date, session.time) <= now,
+  )
 
-  if (raceQuery.isPending || sessionsQuery.isPending) {
+  const renderStartedSession = (scheduledSession: (typeof scheduledSessions)[number]) => {
+    const openF1Session = selectedRaceSessions.find(
+      (session) => session.session_name.toLowerCase() === scheduledSession.session_name.toLowerCase(),
+    )
+    const sessionStart = openF1Session
+      ? Date.parse(openF1Session.date_start)
+      : getScheduledStart(scheduledSession.date, scheduledSession.time)
+    const sessionHasStarted = sessionStart <= now
+
+    if (!openF1Session) {
+      return (
+        <Card key={scheduledSession.id} className="w-full max-w-3xl bg-background/85 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle>{scheduledSession.session_name}</CardTitle>
+            <CardDescription>{formatScheduledDate(scheduledSession.date, scheduledSession.time)}</CardDescription>
+            <p className="pt-2 text-sm text-muted-foreground">
+              {sessionHasStarted ? 'Session results are not available.' : 'Results are not available yet.'}
+            </p>
+          </CardHeader>
+        </Card>
+      )
+    }
+
+    const isPractice = openF1Session.session_type.includes('Practice')
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-8">
-        <LoaderCircle
-          className="size-10 animate-spin text-muted-foreground"
-          aria-hidden="true"
-        />
-        <p role="status" className="text-2xl">Loading data...</p>
+      <SessionCard
+        key={openF1Session.session_key}
+        session={openF1Session}
+        sessionHasStarted={sessionHasStarted}
+        isPracticeResultsOpen={expandedPracticeSessionKey === openF1Session.session_key}
+        onPracticeResultsToggle={isPractice ? () =>
+          setExpandedPracticeSessionKey((current) =>
+            current === openF1Session.session_key ? null : openF1Session.session_key,
+          ) : undefined}
+      />
+    )
+  }
+
+  if (raceQuery.isPending || (Boolean(country_name) && sessionsQuery.isPending)) {
+    return (
+      <div className="relative isolate flex min-h-screen flex-col items-center justify-center gap-8">
+        {backgroundImage && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none fixed inset-0 z-0 scale-105 bg-cover bg-center bg-no-repeat blur-sm"
+            style={{ backgroundImage: `url("${backgroundImage}")` }}
+          />
+        )}
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-black/55" />
+        <div className="relative z-10 flex flex-col items-center gap-8 text-white">
+          <LoaderCircle className="size-10 animate-spin" aria-hidden="true" />
+          <p role="status" className="text-2xl">Loading data...</p>
+        </div>
       </div>
     )
+  }
+
+  if (!raceQuery.data) {
+    return <p role="alert" className="p-8">Grand Prix schedule not found.</p>
   }
 
   return (
@@ -81,39 +146,43 @@ const GrandPrixPage = () => {
         </button>
       </div>
 
-      <Card className="mx-24 bg-linear-to-r from-background/40 to-chart-5">
-        <div className="flex flex-col gap-4 p-8">
-        <h1 className="text-5xl font-bold text-white drop-shadow-lg">{raceQualySessions[0].country_name} Grand Prix</h1>
+      <Card className="mx-4 bg-linear-to-r from-background/40 to-chart-5 sm:mx-24">
+      <div className="flex flex-col gap-4 p-8">
+        <h1 className="text-5xl font-bold text-white drop-shadow-lg">{raceQuery.data.country_name} Grand Prix</h1>
         <div className="flex gap-8 items-center">
-          <h2 className="text-3xl font-semibold text-white drop-shadow-lg">{raceQualySessions[0].location}</h2>
-          <h2 className="text-xl text-white/80 drop-shadow-lg">{formatDate(practiceSessions[0].date_start)} - {formatDate(raceQualySessions[raceQualySessions.length - 1].date_end)}</h2>
+          <h2 className="text-3xl font-semibold text-white drop-shadow-lg">{raceQuery.data.location}</h2>
+          <h2 className="text-xl text-white/80 drop-shadow-lg">
+            {formatDate(scheduledSessions[0]?.date ?? raceQuery.data.date)} - {formatDate(scheduledSessions.at(-1)?.date ?? raceQuery.data.date)}
+          </h2>
         </div>
       </div>
       </Card>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-center justify-items-center gap-4 p-4">
-        {raceQualySessions.map((session) => (
-          <SessionCard
-            key={session.session_key}
-            session={session}
-          />
-        ))}
-      </div>
-
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-center justify-items-center gap-4 p-4 pt-0">
-        {practiceSessions.map((session) => (
-          <SessionCard
-            key={session.session_key}
-            session={session}
-            isPracticeResultsOpen={expandedPracticeSessionKey === session.session_key}
-            onPracticeResultsToggle={() =>
-              setExpandedPracticeSessionKey((current) =>
-                current === session.session_key ? null : session.session_key,
-              )
-            }
-          />
-        ))}
-      </div>
+      {hasAnySessionStarted ? (
+        <>
+          <div className="mx-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-items-center gap-4 p-4 sm:mx-24">
+            {scheduledSessions
+              .filter((session) => !session.session_name.toLowerCase().includes('practice'))
+              .map(renderStartedSession)}
+          </div>
+          <div className="mx-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-items-center gap-4 p-4 pt-0 sm:mx-24">
+            {scheduledSessions
+              .filter((session) => session.session_name.toLowerCase().includes('practice'))
+              .map(renderStartedSession)}
+          </div>
+        </>
+      ) : (
+        <div className="mx-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] justify-items-center gap-4 p-4 sm:mx-24">
+          {scheduledSessions.map((session) => (
+            <Card key={session.id} className="w-full max-w-sm bg-background/85 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>{session.session_name}</CardTitle>
+                <CardDescription>{formatScheduledDate(session.date, session.time)}</CardDescription>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      )}
 
 
       </div>
