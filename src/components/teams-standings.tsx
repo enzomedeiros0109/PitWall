@@ -27,7 +27,7 @@ const TeamsStandings = ({ year }: TeamsStandingsProps) => {
 
 
    return (
-      <div className="bg-card rounded-xl self-start">
+      <div className="self-start overflow-hidden rounded-xl bg-background/85 backdrop-blur-sm">
          <Table>
             <TableHeader>
                <TableRow>
@@ -66,7 +66,7 @@ const TeamsStandings = ({ year }: TeamsStandingsProps) => {
                         <TableCell className="flex items-center gap-2 text-start">
                            <div
                               aria-hidden="true"
-                              className="h-6 w-1 shrink-0"
+                              className="h-6 w-0.5 shrink-0"
                               style={{ backgroundColor: teamColor ? `#${teamColor}` : "var(--muted-foreground)" }}
                            />
                            {team.team_name}

@@ -3,7 +3,7 @@ import type { OpenF1SessionResultSchema } from "@/schemas/openf1/session-result-
 import type { OpenF1SessionSchema } from "@/schemas/openf1/sessions-schema"
 import { useQuery } from "@tanstack/react-query"
 import { ZodError, type z } from "zod"
-import { ArrowDown, Calendar, MapPin } from "lucide-react"
+import { ArrowDown, Calendar } from "lucide-react"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
 
 type Session = z.infer<typeof OpenF1SessionSchema>[number]
@@ -90,9 +90,10 @@ const SessionCard = ({
       ?.slice()
       .sort((a, b) => (a.position ?? Infinity) - (b.position ?? Infinity))
 
+   // Keep result cards consistent with the translucent schedule cards.
    return (
       <Card
-         className={`bg-linear-to-r from-background/40 to-chart-5 mx-auto w-full max-w-3xl transition-[gap] duration-300 ${isPractice && !isPracticeResultsOpen ? 'gap-0' : ''}`}
+         className={`mx-auto w-full max-w-3xl bg-background/85 backdrop-blur-sm transition-[gap] duration-300 ${isPractice && !isPracticeResultsOpen ? 'gap-0' : ''}`}
          style={{ paddingBottom: isPractice && !isPracticeResultsOpen ? 'var(--card-spacing)' : undefined }}
       >
          <CardHeader>
@@ -117,10 +118,6 @@ const SessionCard = ({
                <span className="flex items-center gap-2">
                   <Calendar className="size-5" aria-hidden="true" />
                   {formatDate(session.date_start)}
-               </span>
-               <span className="flex items-center gap-2">
-                  <MapPin className="size-5" aria-hidden="true" />
-                  {session.country_name}, {session.location}
                </span>
                {session.is_cancelled && (
                   <span className="font-semibold text-red-500">Cancelled</span>

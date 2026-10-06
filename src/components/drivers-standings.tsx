@@ -27,7 +27,7 @@ const DriversStandings = ({ year }: DriversStandingsProps) => {
    )
 
    return (
-      <div className="bg-card rounded-xl">
+      <div className="overflow-hidden rounded-xl bg-background/85 backdrop-blur-sm">
          <Table>
             <TableHeader>
                <TableRow>
@@ -64,7 +64,7 @@ const DriversStandings = ({ year }: DriversStandingsProps) => {
                            {standing.position_current}
                         </TableCell>
                         <TableCell className="flex gap-2 text-start items-center">
-                           <div className="h-6 w-1" style={{ background: `#${driver?.team_colour}` }}></div>
+                           <div className="h-6 w-0.5" style={{ background: `#${driver?.team_colour}` }}></div>
                            {driver?.full_name ?? `Driver ${standing.driver_number}`}
 
                         </TableCell>

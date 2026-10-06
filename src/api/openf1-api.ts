@@ -1,5 +1,6 @@
 import { OpenF1DriverSchema } from "@/schemas/openf1/driver-schema";
 import { OpenF1DriverStandingSchema } from "@/schemas/openf1/driver-standings-schema";
+import { OpenF1MeetingsSchema } from "@/schemas/openf1/meetings-schema";
 import { OpenF1SessionResultSchema } from "@/schemas/openf1/session-result-schema";
 import { OpenF1SessionSchema } from "@/schemas/openf1/sessions-schema";
 import { OpenF1TeamsStandingsSchema } from "@/schemas/openf1/teams-standings-schema";
@@ -137,4 +138,12 @@ export async function getOpenF1SessionResult(session_key: number) {
    const response = await api.get(`session_result?session_key=${session_key}`)
 
    return OpenF1SessionResultSchema.parse(response.data)
+}
+
+export async function getMeetings(year: number, country_name?: string) {
+   const params = new URLSearchParams({ year: String(year) })
+   if (country_name) params.set('country_name', country_name)
+   const response = await api.get(`meetings?${params.toString()}`)
+
+   return OpenF1MeetingsSchema.parse(response.data)
 }
