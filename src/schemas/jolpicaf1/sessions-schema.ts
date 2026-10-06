@@ -8,17 +8,21 @@ const JolpicaSessionDateSchema = z.object({
 const JolpicaRaceSchema = z.object({
   season: z.coerce.number().int(),
   round: z.coerce.number().int(),
+  url: z.string().url().optional(),
   raceName: z.string(),
   date: z.string(),
   time: z.string().optional(),
   Circuit: z.object({
     circuitId: z.string(),
+    url: z.string().url().optional(),
     circuitName: z.string(),
     Location: z.object({
+      lat: z.string().optional(),
+      long: z.string().optional(),
       locality: z.string(),
       country: z.string(),
-    }),
-  }),
+    }).passthrough(),
+  }).passthrough(),
   FirstPractice: JolpicaSessionDateSchema.optional(),
   SecondPractice: JolpicaSessionDateSchema.optional(),
   ThirdPractice: JolpicaSessionDateSchema.optional(),
@@ -53,10 +57,18 @@ export const RaceSchema = z.object({
 
 const JolpicaRacesResponseSchema = z.object({
   MRData: z.object({
+    xmlns: z.string().optional(),
+    series: z.string().optional(),
+    url: z.string().url().optional(),
+    limit: z.coerce.number().int().optional(),
+    offset: z.coerce.number().int().optional(),
+    total: z.coerce.number().int().optional(),
     RaceTable: z.object({
+      season: z.coerce.number().int().optional(),
+      round: z.coerce.number().int().optional(),
       Races: z.array(JolpicaRaceSchema),
-    }),
-  }),
+    }).passthrough(),
+  }).passthrough(),
 });
 
 export const RacesSchema = JolpicaRacesResponseSchema.transform(({ MRData }) =>

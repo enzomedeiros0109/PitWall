@@ -6,7 +6,7 @@ import { formatDate } from "@/hooks/formatDate"
 import { formatLocalTime } from "@/hooks/formatLocalTime"
 import { useNavigate } from "react-router"
 import type { z } from "zod"
-import { RaceSchema } from "@/schemas/sessions-schema"
+import { RaceSchema } from "@/schemas/jolpicaf1/sessions-schema"
 
 type Race = z.infer<typeof RaceSchema>
 

@@ -1,4 +1,4 @@
-import { getRaces } from "@/api/api"
+import { getRaces } from "@/api/jolpicaf1-api"
 import DriversStandings from "@/components/drivers-standings"
 import F1Logo from "@/components/f1-logo"
 import GrandPixCard from "@/components/grand-prix-card"
@@ -12,7 +12,6 @@ const HomePage = () => {
       queryKey: ['races', season],
       queryFn: () => getRaces(season),
    })
-
    const now = Date.now()
    const firstUpcomingIndex = data?.reduce((nearestIndex, race, index, races) => {
       const raceStart = Date.parse(`${race.date}T${race.time ?? '23:59:59Z'}`)
@@ -58,8 +57,8 @@ const HomePage = () => {
          )}
 
          <div className="grid grid-cols-2 w-auto gap-x-30">
-            <DriversStandings />
-            <TeamsStandings />
+            <DriversStandings year={season} />
+            <TeamsStandings year={season} />
          </div>
       </div>
    )

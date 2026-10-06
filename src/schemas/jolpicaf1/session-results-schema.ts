@@ -9,7 +9,10 @@ const JolpicaResultSchema = z.object({
     familyName: z.string(),
     code: z.string().optional(),
   }),
-  Constructor: z.object({ name: z.string() }).optional(),
+  Constructor: z.object({
+    constructorId: z.string().optional(),
+    name: z.string(),
+  }).optional(),
 });
 
 const JolpicaRaceResultsSchema = z.object({
@@ -31,6 +34,7 @@ export const SessionResultSchema = z.object({
     driver_id: result.Driver.driverId,
     driver_name: `${result.Driver.givenName} ${result.Driver.familyName}`,
     driver_code: result.Driver.code ?? result.Driver.driverId.slice(0, 3).toUpperCase(),
+    constructor_id: result.Constructor?.constructorId ?? "",
     constructor_name: result.Constructor?.name ?? "",
     position: result.positionText ?? result.position,
   })),
