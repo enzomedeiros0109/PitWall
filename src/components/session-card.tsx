@@ -72,6 +72,10 @@ const SessionCard = ({
 }: Props) => {
    const isPractice = session.session_type.includes('Practice')
    const isQualifying = session.session_type.includes('Qualifying')
+   // Give race timing columns the same minimum width as qualifying columns.
+   const resultGridColumns = isQualifying
+      ? 'grid-cols-[3rem_minmax(0,1fr)_repeat(3,minmax(4rem,auto))]'
+      : 'grid-cols-[3rem_minmax(0,1fr)_repeat(2,minmax(4rem,auto))]'
 
    // Load practice data only after the user opens its results.
    const sessionResult = useQuery({
@@ -143,7 +147,7 @@ const SessionCard = ({
                      <p>No results available for this session.</p>
                   )}
                   {!session.is_cancelled && sessionResult.isSuccess && Boolean(results?.length) && (
-                     <div className={`grid ${isQualifying ? 'grid-cols-[3rem_minmax(0,1fr)_repeat(3,minmax(4rem,auto))]' : 'grid-cols-[3rem_minmax(0,1fr)_auto_auto]'} items-center gap-3 border-b py-2 text-sm font-semibold text-muted-foreground`}>
+                     <div className={`grid ${resultGridColumns} items-center gap-3 border-b py-2 text-sm font-semibold text-muted-foreground`}>
                         <p className="text-center">Position</p>
                         <p className="border-l-2 border-transparent pl-3">Name</p>
                         {isQualifying ? (
@@ -170,7 +174,7 @@ const SessionCard = ({
                      return (
                         <div
                            key={`${result.session_key}-${result.driver_number}`}
-                           className={`grid ${isQualifying ? 'grid-cols-[3rem_minmax(0,1fr)_repeat(3,minmax(4rem,auto))]' : 'grid-cols-[3rem_minmax(0,1fr)_auto_auto]'} items-center gap-3 border-b py-2 last:border-b-0`}
+                           className={`grid ${resultGridColumns} items-center gap-3 border-b py-2 last:border-b-0`}
                         >
                            <p className="text-center">{status}</p>
                            <p

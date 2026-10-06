@@ -27,7 +27,7 @@ const TeamsStandings = ({ year }: TeamsStandingsProps) => {
 
 
    return (
-      <div className="self-start overflow-hidden rounded-xl bg-background/85 backdrop-blur-sm">
+      <div className="self-start overflow-hidden rounded-xl bg-background/85 backdrop-blur-sm border border-white/50">
          <Table>
             <TableHeader>
                <TableRow>

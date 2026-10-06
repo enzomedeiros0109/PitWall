@@ -38,7 +38,7 @@ const HomePage = () => {
       <div className="relative isolate min-h-screen">
          <div
             aria-hidden="true"
-            className="pointer-events-none fixed inset-0 z-0 scale-105 bg-cover bg-center bg-no-repeat blur-md"
+            className="pointer-events-none fixed inset-0 z-0 scale-105 bg-cover bg-center bg-no-repeat blur-md brightness-75"
             style={{ backgroundImage: `url("${f1Background}")` }}
          />
          <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-black/45" />

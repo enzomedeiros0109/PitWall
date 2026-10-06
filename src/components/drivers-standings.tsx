@@ -27,7 +27,7 @@ const DriversStandings = ({ year }: DriversStandingsProps) => {
    )
 
    return (
-      <div className="overflow-hidden rounded-xl bg-background/85 backdrop-blur-sm">
+      <div className="overflow-hidden rounded-xl bg-background/85 backdrop-blur-sm border border-white/50">
          <Table>
             <TableHeader>
                <TableRow>

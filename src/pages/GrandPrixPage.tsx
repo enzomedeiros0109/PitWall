@@ -24,7 +24,7 @@ function formatScheduledDate(date: string, time: string | null): string {
 }
 
 const GrandPrixPage = () => {
-  const [expandedPracticeSessionKey, setExpandedPracticeSessionKey] = useState<number | null>(null)
+  const [expandedPracticeSessionKeys, setExpandedPracticeSessionKeys] = useState<Set<number>>(() => new Set())
   const [now, setNow] = useState(() => Date.now())
   const navigate = useNavigate()
   const { season: seasonParam, round: roundParam } = useParams()
@@ -102,11 +102,17 @@ const GrandPrixPage = () => {
         key={openF1Session.session_key}
         session={openF1Session}
         sessionHasStarted={sessionHasStarted}
-        isPracticeResultsOpen={expandedPracticeSessionKey === openF1Session.session_key}
+        isPracticeResultsOpen={expandedPracticeSessionKeys.has(openF1Session.session_key)}
         onPracticeResultsToggle={isPractice ? () =>
-          setExpandedPracticeSessionKey((current) =>
-            current === openF1Session.session_key ? null : openF1Session.session_key,
-          ) : undefined}
+          setExpandedPracticeSessionKeys((current) => {
+            const next = new Set(current)
+            if (next.has(openF1Session.session_key)) {
+              next.delete(openF1Session.session_key)
+            } else {
+              next.add(openF1Session.session_key)
+            }
+            return next
+          }) : undefined}
       />
     )
   }
