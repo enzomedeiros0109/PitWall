@@ -58,7 +58,7 @@ const TeamsStandings = ({ year }: TeamsStandingsProps) => {
                   return (
                      <TableRow key={team.team_name} className="h-12">
                         <TableCell
-                           className="text-center"
+                           className="text-center font-bold"
                            style={{ color: team.position_current === 1 ? '#FFD700' : team.position_current === 2 ? '#C0C0C0' : team.position_current === 3 ? '#CD7F32' : '' }}
                         >
                            {team.position_current}
