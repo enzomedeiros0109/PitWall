@@ -6,6 +6,8 @@ import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, LoaderCircle } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
 import { formatDate } from "@/hooks/formatDate"
+import { getSessionImage } from "@/data/session-images"
+import { Card } from "@/components/ui/card"
 
 const GrandPrixPage = () => {
   const [expandedPracticeSessionKey, setExpandedPracticeSessionKey] = useState<number | null>(null)
@@ -40,6 +42,10 @@ const GrandPrixPage = () => {
   const practiceSessions = selectedRaceSessions
     .filter((session) => session.session_type.includes('Practice'))
     .slice(0, 3)
+  const backgroundSession = selectedRaceSessions[0]
+  const backgroundImage = backgroundSession
+    ? getSessionImage(backgroundSession.circuit_short_name, backgroundSession.location)
+    : undefined
 
   if (raceQuery.isPending || sessionsQuery.isPending) {
     return (
@@ -54,7 +60,16 @@ const GrandPrixPage = () => {
   }
 
   return (
-    <div>
+    <div className="relative isolate min-h-screen">
+      {backgroundImage && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url("${backgroundImage}")` }}
+        />
+      )}
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 bg-black/45" />
+      <div className="relative z-10">
       <div className="p-4">
         <button
           className="flex items-center justify-center p-2 bg-accent rounded-md cursor-pointer hover:bg-accent-foreground/20"
@@ -66,13 +81,15 @@ const GrandPrixPage = () => {
         </button>
       </div>
 
-      <div className="flex flex-col gap-4 p-8">
-          <h1 className="text-5xl font-bold">{raceQualySessions[0].country_name} Grand Prix</h1>
-          <div className="flex gap-8 items-center">
-            <h2 className="text-3xl font-semibold">{raceQualySessions[0].location}</h2>
-            <h2 className="text-xl text-white/70">{formatDate(practiceSessions[0].date_start)} - {formatDate(raceQualySessions[raceQualySessions.length - 1].date_end)}</h2>
-          </div>
+      <Card className="mx-24 bg-linear-to-r from-background/40 to-chart-5">
+        <div className="flex flex-col gap-4 p-8">
+        <h1 className="text-5xl font-bold text-white drop-shadow-lg">{raceQualySessions[0].country_name} Grand Prix</h1>
+        <div className="flex gap-8 items-center">
+          <h2 className="text-3xl font-semibold text-white drop-shadow-lg">{raceQualySessions[0].location}</h2>
+          <h2 className="text-xl text-white/80 drop-shadow-lg">{formatDate(practiceSessions[0].date_start)} - {formatDate(raceQualySessions[raceQualySessions.length - 1].date_end)}</h2>
+        </div>
       </div>
+      </Card>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-center justify-items-center gap-4 p-4">
         {raceQualySessions.map((session) => (
@@ -99,6 +116,7 @@ const GrandPrixPage = () => {
       </div>
 
 
+      </div>
     </div>
   )
 }
