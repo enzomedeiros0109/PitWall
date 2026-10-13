@@ -3,7 +3,7 @@ import type { OpenF1SessionResultSchema } from "@/schemas/openf1/session-result-
 import type { OpenF1SessionSchema } from "@/schemas/openf1/sessions-schema"
 import { useQuery } from "@tanstack/react-query"
 import { ZodError, type z } from "zod"
-import { ArrowDown, Calendar, MapPin } from "lucide-react"
+import { ArrowDown, Calendar } from "lucide-react"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
 
 type Session = z.infer<typeof OpenF1SessionSchema>[number]
@@ -72,6 +72,10 @@ const SessionCard = ({
 }: Props) => {
    const isPractice = session.session_type.includes('Practice')
    const isQualifying = session.session_type.includes('Qualifying')
+   // Give race timing columns the same minimum width as qualifying columns.
+   const resultGridColumns = isQualifying
+      ? 'grid-cols-[3rem_minmax(0,1fr)_repeat(3,minmax(4rem,auto))]'
+      : 'grid-cols-[3rem_minmax(0,1fr)_repeat(2,minmax(4rem,auto))]'
 
    // Load practice data only after the user opens its results.
    const sessionResult = useQuery({
@@ -90,9 +94,10 @@ const SessionCard = ({
       ?.slice()
       .sort((a, b) => (a.position ?? Infinity) - (b.position ?? Infinity))
 
+   // Keep result cards consistent with the translucent schedule cards.
    return (
       <Card
-         className={`bg-linear-to-r from-background/40 to-chart-5 mx-auto w-full max-w-3xl transition-[gap] duration-300 ${isPractice && !isPracticeResultsOpen ? 'gap-0' : ''}`}
+         className={`mx-auto w-full max-w-3xl bg-background/85 backdrop-blur-sm transition-[gap] duration-300 ${isPractice && !isPracticeResultsOpen ? 'gap-0' : ''}`}
          style={{ paddingBottom: isPractice && !isPracticeResultsOpen ? 'var(--card-spacing)' : undefined }}
       >
          <CardHeader>
@@ -118,10 +123,6 @@ const SessionCard = ({
                   <Calendar className="size-5" aria-hidden="true" />
                   {formatDate(session.date_start)}
                </span>
-               <span className="flex items-center gap-2">
-                  <MapPin className="size-5" aria-hidden="true" />
-                  {session.country_name}, {session.location}
-               </span>
                {session.is_cancelled && (
                   <span className="font-semibold text-red-500">Cancelled</span>
                )}
@@ -146,7 +147,7 @@ const SessionCard = ({
                      <p>No results available for this session.</p>
                   )}
                   {!session.is_cancelled && sessionResult.isSuccess && Boolean(results?.length) && (
-                     <div className={`grid ${isQualifying ? 'grid-cols-[3rem_minmax(0,1fr)_repeat(3,minmax(4rem,auto))]' : 'grid-cols-[3rem_minmax(0,1fr)_auto_auto]'} items-center gap-3 border-b py-2 text-sm font-semibold text-muted-foreground`}>
+                     <div className={`grid ${resultGridColumns} items-center gap-3 border-b py-2 text-sm font-semibold text-muted-foreground`}>
                         <p className="text-center">Position</p>
                         <p className="border-l-2 border-transparent pl-3">Name</p>
                         {isQualifying ? (
@@ -173,7 +174,7 @@ const SessionCard = ({
                      return (
                         <div
                            key={`${result.session_key}-${result.driver_number}`}
-                           className={`grid ${isQualifying ? 'grid-cols-[3rem_minmax(0,1fr)_repeat(3,minmax(4rem,auto))]' : 'grid-cols-[3rem_minmax(0,1fr)_auto_auto]'} items-center gap-3 border-b py-2 last:border-b-0`}
+                           className={`grid ${resultGridColumns} items-center gap-3 border-b py-2 last:border-b-0`}
                         >
                            <p className="text-center">{status}</p>
                            <p

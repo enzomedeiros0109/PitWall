@@ -1,5 +1,5 @@
 import { getRaceByRound } from "@/api/jolpicaf1-api"
-import { getAllSessions } from "@/api/openf1-api"
+import { getAllSessions, getMeetings } from "@/api/openf1-api"
 import SessionCard from "@/components/session-card"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useEffect, useState } from "react"
@@ -8,6 +8,7 @@ import { ArrowLeft, LoaderCircle } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
 import { formatDate } from "@/hooks/formatDate"
 import { getSessionImage } from "@/data/session-images"
+import { matchMeetingToRace } from "@/data/match-meeting"
 
 function getScheduledStart(date: string, time: string | null): number {
   return Date.parse(`${date}T${time ?? '23:59:59Z'}`)
@@ -23,7 +24,7 @@ function formatScheduledDate(date: string, time: string | null): string {
 }
 
 const GrandPrixPage = () => {
-  const [expandedPracticeSessionKey, setExpandedPracticeSessionKey] = useState<number | null>(null)
+  const [expandedPracticeSessionKeys, setExpandedPracticeSessionKeys] = useState<Set<number>>(() => new Set())
   const [now, setNow] = useState(() => Date.now())
   const navigate = useNavigate()
   const { season: seasonParam, round: roundParam } = useParams()
@@ -42,6 +43,12 @@ const GrandPrixPage = () => {
     enabled: Number.isInteger(season) && Number.isInteger(round),
   })
 
+  const meetingsQuery = useQuery({
+    queryKey: ['meetings', season],
+    queryFn: () => getMeetings(season),
+    enabled: Number.isInteger(season),
+  })
+
   const country_name = raceQuery.data?.country_name
 
   const sessionsQuery = useQuery({
@@ -52,6 +59,9 @@ const GrandPrixPage = () => {
 
   const sessions = sessionsQuery.data ?? []
   const scheduledSessions = raceQuery.data?.sessions ?? []
+  const meeting = raceQuery.data
+    ? matchMeetingToRace(raceQuery.data, meetingsQuery.data ?? [])
+    : undefined
   const selectedRaceSessions = sessions.filter((session) =>
     session.year === season &&
     session.location.toLowerCase() === raceQuery.data?.location.toLowerCase()
@@ -92,16 +102,22 @@ const GrandPrixPage = () => {
         key={openF1Session.session_key}
         session={openF1Session}
         sessionHasStarted={sessionHasStarted}
-        isPracticeResultsOpen={expandedPracticeSessionKey === openF1Session.session_key}
+        isPracticeResultsOpen={expandedPracticeSessionKeys.has(openF1Session.session_key)}
         onPracticeResultsToggle={isPractice ? () =>
-          setExpandedPracticeSessionKey((current) =>
-            current === openF1Session.session_key ? null : openF1Session.session_key,
-          ) : undefined}
+          setExpandedPracticeSessionKeys((current) => {
+            const next = new Set(current)
+            if (next.has(openF1Session.session_key)) {
+              next.delete(openF1Session.session_key)
+            } else {
+              next.add(openF1Session.session_key)
+            }
+            return next
+          }) : undefined}
       />
     )
   }
 
-  if (raceQuery.isPending || (Boolean(country_name) && sessionsQuery.isPending)) {
+  if (raceQuery.isPending || meetingsQuery.isPending || (Boolean(country_name) && sessionsQuery.isPending)) {
     return (
       <div className="relative isolate flex min-h-screen flex-col items-center justify-center gap-8">
         {backgroundImage && (
@@ -147,15 +163,32 @@ const GrandPrixPage = () => {
       </div>
 
       <Card className="mx-4 bg-linear-to-r from-background/40 to-chart-5 sm:mx-24">
-      <div className="flex flex-col gap-4 p-8">
-        <h1 className="text-5xl font-bold text-white drop-shadow-lg">{raceQuery.data.country_name} Grand Prix</h1>
-        <div className="flex gap-8 items-center">
-          <h2 className="text-3xl font-semibold text-white drop-shadow-lg">{raceQuery.data.location}</h2>
-          <h2 className="text-xl text-white/80 drop-shadow-lg">
-            {formatDate(scheduledSessions[0]?.date ?? raceQuery.data.date)} - {formatDate(scheduledSessions.at(-1)?.date ?? raceQuery.data.date)}
-          </h2>
-        </div>
-      </div>
+        {meeting ? (
+          <div className="flex flex-col gap-4 p-8">
+            <div className="flex flex-col gap-4 items-start">
+              <img
+                src={meeting.country_flag}
+                alt={`${meeting.country_name} flag`}
+                className="h-8 w-12 rounded-sm object-cover shadow"
+              />
+              <h1 className="text-3xl font-bold text-white drop-shadow-lg sm:text-5xl">
+                {meeting.meeting_official_name}
+              </h1>
+            </div>
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-8">
+              <h2 className="text-2xl font-semibold text-white drop-shadow-lg sm:text-3xl">
+                {meeting.country_name}, {meeting.location}
+              </h2>
+              <h2 className="text-lg text-white/80 drop-shadow-lg sm:text-xl">
+                {formatDate(meeting.date_start)} - {formatDate(meeting.date_end)}
+              </h2>
+            </div>
+          </div>
+        ) : (
+          <p role="alert" className="p-8 text-white">
+            OpenF1 meeting information is unavailable for this Grand Prix.
+          </p>
+        )}
       </Card>
 
       {hasAnySessionStarted ? (
