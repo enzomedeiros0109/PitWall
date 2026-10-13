@@ -169,7 +169,7 @@ const GrandPrixPage = () => {
               <img
                 src={meeting.country_flag}
                 alt={`${meeting.country_name} flag`}
-                className="h-8 w-12 rounded-sm object-cover shadow"
+                className="h-8 w-12 rounded-sm shadow"
               />
               <h1 className="text-3xl font-bold text-white drop-shadow-lg sm:text-5xl">
                 {meeting.meeting_official_name}
