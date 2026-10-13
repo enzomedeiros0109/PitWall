@@ -10,6 +10,7 @@ type Session = z.infer<typeof OpenF1SessionSchema>[number]
 
 type Props = {
    session: Session
+   sessionHasStarted: boolean
    isPracticeResultsOpen?: boolean
    onPracticeResultsToggle?: () => void
 }
@@ -65,6 +66,7 @@ function getSessionResultError(error: unknown): string {
 
 const SessionCard = ({
    session,
+   sessionHasStarted,
    isPracticeResultsOpen = false,
    onPracticeResultsToggle,
 }: Props) => {
@@ -75,13 +77,13 @@ const SessionCard = ({
    const sessionResult = useQuery({
       queryKey: ['sessionResult', session.session_key, 'flexible-result-fields-v2'],
       queryFn: () => getOpenF1SessionResult(session.session_key),
-      enabled: !session.is_cancelled && (!isPractice || isPracticeResultsOpen),
+      enabled: !session.is_cancelled && sessionHasStarted && (!isPractice || isPracticeResultsOpen),
    })
 
    const drivers = useQuery({
       queryKey: ['drivers', session.session_key],
       queryFn: () => getDrivers(String(session.session_key)),
-      enabled: !session.is_cancelled && (!isPractice || isPracticeResultsOpen),
+      enabled: !session.is_cancelled && sessionHasStarted && (!isPractice || isPracticeResultsOpen),
    })
 
    const results = sessionResult.data
@@ -133,7 +135,8 @@ const SessionCard = ({
             <div className="min-h-0 overflow-hidden">
                <CardFooter className="w-full flex-col items-stretch gap-2">
                   {session.is_cancelled && <p>Results are unavailable for a cancelled session.</p>}
-                  {!session.is_cancelled && sessionResult.isPending && <p>Loading results…</p>}
+                  {!session.is_cancelled && !sessionHasStarted && <p>Results are not available yet.</p>}
+                  {!session.is_cancelled && sessionHasStarted && sessionResult.isPending && <p>Loading results…</p>}
                   {!session.is_cancelled && sessionResult.isError && (
                      <p role="alert">
                         Could not load this session&apos;s results ({getSessionResultError(sessionResult.error)}).
