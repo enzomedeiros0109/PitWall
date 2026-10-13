@@ -178,7 +178,7 @@ const SessionCard = ({
                         >
                            <p className="text-center">{status}</p>
                            <p
-                              className="border-l-2 pl-3"
+                              className="border-l-2 pl-3 text-sm"
                               style={{
                                  borderColor: driver?.team_colour
                                     ? `#${driver.team_colour}`
