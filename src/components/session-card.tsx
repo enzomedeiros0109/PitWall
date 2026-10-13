@@ -90,7 +90,7 @@ const SessionCard = ({
 
    return (
       <Card
-         className={`mx-auto w-full max-w-3xl transition-[gap] duration-300 ${isPractice && !isPracticeResultsOpen ? 'gap-0' : ''}`}
+         className={`bg-linear-to-r from-background/40 to-chart-5 mx-auto w-full max-w-3xl transition-[gap] duration-300 ${isPractice && !isPracticeResultsOpen ? 'gap-0' : ''}`}
          style={{ paddingBottom: isPractice && !isPracticeResultsOpen ? 'var(--card-spacing)' : undefined }}
       >
          <CardHeader>
@@ -143,7 +143,6 @@ const SessionCard = ({
                      <p>No results available for this session.</p>
                   )}
                   {!session.is_cancelled && sessionResult.isSuccess && Boolean(results?.length) && (
-                     // Keep the labels aligned with the result rows below.
                      <div className={`grid ${isQualifying ? 'grid-cols-[3rem_minmax(0,1fr)_repeat(3,minmax(4rem,auto))]' : 'grid-cols-[3rem_minmax(0,1fr)_auto_auto]'} items-center gap-3 border-b py-2 text-sm font-semibold text-muted-foreground`}>
                         <p className="text-center">Position</p>
                         <p className="border-l-2 border-transparent pl-3">Name</p>
@@ -186,10 +185,10 @@ const SessionCard = ({
                            </p>
                            {isQualifying ? (
                               Array.from({ length: 3 }, (_, index) => (
-                                    <p key={index} className="whitespace-nowrap text-right">
-                                       {formatLapTime(qualifyingTimes[index] ?? null)}
-                                    </p>
-                                 ))
+                                 <p key={index} className="whitespace-nowrap text-right">
+                                    {formatLapTime(qualifyingTimes[index] ?? null)}
+                                 </p>
+                              ))
                            ) : (
                               <>
                                  <p className="whitespace-nowrap text-right">
