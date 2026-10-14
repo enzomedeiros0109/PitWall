@@ -28,7 +28,8 @@ function getResultStatus(result: z.infer<typeof OpenF1SessionResultSchema>[numbe
    if (result.dsq) return 'DSQ'
    if (result.dns) return 'DNS'
    if (result.dnf) return 'DNF'
-   return result.position === null ? '—' : `P${result.position}`
+   if (result.position === null) return '—'
+   return typeof result.position === 'number' ? `P${result.position}` : result.position
 }
 
 function formatGap(gap: z.infer<typeof OpenF1SessionResultSchema>[number]['gap_to_leader']): string {
@@ -92,7 +93,10 @@ const SessionCard = ({
 
    const results = sessionResult.data
       ?.slice()
-      .sort((a, b) => (a.position ?? Infinity) - (b.position ?? Infinity))
+      .sort((a, b) =>
+         (typeof a.position === 'number' ? a.position : Infinity) -
+         (typeof b.position === 'number' ? b.position : Infinity),
+      )
 
    // Keep result cards consistent with the translucent schedule cards.
    return (
@@ -178,7 +182,7 @@ const SessionCard = ({
                         >
                            <p className="text-center">{status}</p>
                            <p
-                              className="border-l-2 pl-3"
+                              className="border-l-2 pl-3 text-sm"
                               style={{
                                  borderColor: driver?.team_colour
                                     ? `#${driver.team_colour}`

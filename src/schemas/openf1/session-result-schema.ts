@@ -14,7 +14,12 @@ export const OpenF1SessionResultSchema = z.array(
     ]).nullable(),
     number_of_laps: z.number().int(),
     meeting_key: z.number().int(),
-    position: z.number().int().nullable(),
+    position: z.union([z.number().int(), z.string().trim().min(1)]).nullable().transform((position) => {
+      if (typeof position !== "string" || !/^\d+$/.test(position)) return position;
+
+      const numericPosition = Number(position);
+      return Number.isSafeInteger(numericPosition) ? numericPosition : position;
+    }),
     session_key: z.number().int(),
   })
 );

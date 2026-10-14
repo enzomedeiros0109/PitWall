@@ -162,14 +162,14 @@ const GrandPrixPage = () => {
         </button>
       </div>
 
-      <Card className="mx-4 bg-linear-to-r from-background/40 to-chart-5 sm:mx-24">
+      <Card className="mx-4 bg-linear-to-r from-background/40 to-chart-5">
         {meeting ? (
           <div className="flex flex-col gap-4 p-8">
             <div className="flex flex-col gap-4 items-start">
               <img
                 src={meeting.country_flag}
                 alt={`${meeting.country_name} flag`}
-                className="h-8 w-12 rounded-sm object-cover shadow"
+                className="h-8 w-12 rounded-sm shadow"
               />
               <h1 className="text-3xl font-bold text-white drop-shadow-lg sm:text-5xl">
                 {meeting.meeting_official_name}
@@ -193,7 +193,7 @@ const GrandPrixPage = () => {
 
       {hasAnySessionStarted ? (
         <>
-          <div className="mx-4 grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-items-center gap-4 p-4 sm:mx-24">
+          <div className="mx-1 grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-start justify-items-center gap-4 p-4">
             {scheduledSessions
               .filter((session) => !session.session_name.toLowerCase().includes('practice'))
               .map(renderStartedSession)}
