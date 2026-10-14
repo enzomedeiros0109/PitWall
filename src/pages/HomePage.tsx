@@ -1,12 +1,12 @@
 import { getRaces } from "@/api/jolpicaf1-api"
 import { getMeetings } from "@/api/openf1-api"
-import DriversStandings from "@/components/drivers-standings"
+import DriversStandings from "@/components/standings/drivers-standings"
 import F1Logo from "@/components/f1-logo"
-import GrandPixCard from "@/components/grand-prix-card"
-import TeamsStandings from "@/components/teams-standings"
+import GrandPixCard from "@/components/grand-prix/grand-prix-card"
+import TeamsStandings from "@/components/standings/teams-standings"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel"
 import { useQuery } from "@tanstack/react-query"
-import { matchMeetingToRace } from "@/data/match-meeting"
+import { matchMeetingToRace } from "@/lib/match-meeting"
 import f1Background from "@/assets/f1-background.jpg"
 
 const HomePage = () => {

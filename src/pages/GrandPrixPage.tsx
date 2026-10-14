@@ -1,14 +1,14 @@
 import { getRaceByRound } from "@/api/jolpicaf1-api"
 import { getAllSessions, getMeetings } from "@/api/openf1-api"
-import SessionCard from "@/components/session-card"
+import SessionCard from "@/components/grand-prix/session-card"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { ArrowLeft, LoaderCircle } from "lucide-react"
 import { useNavigate, useParams } from "react-router"
-import { formatDate } from "@/hooks/formatDate"
+import { formatDate } from "@/lib/format-date"
 import { getSessionImage } from "@/data/session-images"
-import { matchMeetingToRace } from "@/data/match-meeting"
+import { matchMeetingToRace } from "@/lib/match-meeting"
 
 function getScheduledStart(date: string, time: string | null): number {
   return Date.parse(`${date}T${time ?? '23:59:59Z'}`)

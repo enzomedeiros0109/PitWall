@@ -106,25 +106,10 @@ export async function getTeamsStandings(session_key: number){
    return OpenF1TeamsStandingsSchema.parse(response.data)
 }
 
-function getSessionsParams(year: number, country_name?: string, session_name?: string) {
+function getSessionsParams(year: number, country_name?: string) {
    const params = new URLSearchParams({ year: String(year) })
    if (country_name) params.set('country_name', country_name)
-   if (session_name) params.set('session_name', session_name)
    return params.toString()
-}
-
-export async function getPracticeSessions(country_name: string, year: number) {
-   const response = await api.get(`sessions?${getSessionsParams(year, country_name, 'Practice')}`)
-
-   // Retorna apenas sessões de treino
-   return OpenF1SessionSchema.parse(response.data)
-}
-
-export async function getRaceAndQualySessions(country_name: string, year: number) {
-   const response = await api.get(`sessions?${getSessionsParams(year, country_name)}`)
-
-   // Retorna sessões de corrida e qualificação
-   return OpenF1SessionSchema.parse(response.data).filter((session) => !(session.session_type.includes('Practice')))
 }
 
 export async function getAllSessions(year: number, country_name?: string) {

@@ -2,10 +2,8 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import HomePage from './pages/HomePage.tsx'
-import GrandPrixPage from './pages/GrandPrixPage.tsx'
-import DriverPage from './pages/DriverPage.tsx'
-import { BrowserRouter, Route, Routes } from "react-router"
+import App from './App.tsx'
+import { BrowserRouter } from 'react-router'
 import { getOpenF1RetryDelay } from './api/openf1-api'
 
 const queryClient = new QueryClient({
@@ -26,11 +24,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/grand-prix/:season/:round" element={<GrandPrixPage />} />
-          <Route path="/driver/:season/:driverSlug" element={<DriverPage />} />
-        </Routes>
+        <App />
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { SessionResultSchema } from '@/schemas/jolpicaf1/session-results-schema';
 import { RacesSchema } from '@/schemas/jolpicaf1/sessions-schema';
 import { JolpicaDriversSchema } from '@/schemas/jolpicaf1/drivers-schema';
 import { DriverQualifyingResultsSchema, DriverRaceResultsSchema } from '@/schemas/jolpicaf1/driver-results-schema';
@@ -49,12 +48,3 @@ export async function getDriverQualifyingResults(season: number, driverId: strin
    )
 }
 
-export async function getSessionResult(
-   season: number,
-   round: number,
-   resultType: 'race' | 'sprint' | 'qualifying',
-) {
-   const endpoint = resultType === 'race' ? 'results' : resultType
-   const response = await api.get(`${season}/${round}/${endpoint}.json`)
-   return SessionResultSchema.parse(response.data)
-}
