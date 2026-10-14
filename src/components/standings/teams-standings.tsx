@@ -1,6 +1,6 @@
 import { getDrivers, getTeamsStandings } from "@/api/openf1-api"
 import { useLatestCompletedRace } from "@/hooks/useLatestCompletedRace"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery } from "@tanstack/react-query"
 
 type TeamsStandingsProps = {

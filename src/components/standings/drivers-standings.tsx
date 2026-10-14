@@ -1,9 +1,9 @@
 import { getDrivers, getDriversStandings } from "@/api/openf1-api"
 import { useLatestCompletedRace } from "@/hooks/useLatestCompletedRace"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useQuery } from "@tanstack/react-query"
 import { useNavigate } from "react-router"
-import { getDriverSlug } from "@/data/driver-slug"
+import { getDriverSlug } from "@/lib/driver-slug"
 
 type DriversStandingsProps = {
    year: number

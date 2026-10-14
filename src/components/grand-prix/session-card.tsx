@@ -4,9 +4,9 @@ import type { OpenF1SessionSchema } from "@/schemas/openf1/sessions-schema"
 import { useQuery } from "@tanstack/react-query"
 import { ZodError, type z } from "zod"
 import { ArrowDown, Calendar } from "lucide-react"
-import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
+import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useNavigate } from "react-router"
-import { getDriverSlug } from "@/data/driver-slug"
+import { getDriverSlug } from "@/lib/driver-slug"
 
 type Session = z.infer<typeof OpenF1SessionSchema>[number]
 
