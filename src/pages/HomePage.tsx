@@ -33,6 +33,7 @@ const HomePage = () => {
 
       return nearestIndex
    }, -1) ?? -1
+   const initialRaceIndex = firstUpcomingIndex === -1 ? Math.max((data?.length ?? 0) - 1, 0) : Math.max(firstUpcomingIndex - 1, 0)
 
    return (
       <div className="relative isolate min-h-screen">
@@ -49,10 +50,10 @@ const HomePage = () => {
 
             {data && (
                <Carousel
-                  key={firstUpcomingIndex}
+                  key={initialRaceIndex}
                   className="w-full max-w-300"
                   opts={{
-                     startIndex: firstUpcomingIndex >= 0 ? firstUpcomingIndex : 0,
+                     startIndex: initialRaceIndex,
                      slidesToScroll: 1,
                   }}
                >
