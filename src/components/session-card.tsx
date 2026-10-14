@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query"
 import { ZodError, type z } from "zod"
 import { ArrowDown, Calendar } from "lucide-react"
 import { Card, CardAction, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
+import { useNavigate } from "react-router"
+import { getDriverSlug } from "@/data/driver-slug"
 
 type Session = z.infer<typeof OpenF1SessionSchema>[number]
 
@@ -71,6 +73,7 @@ const SessionCard = ({
    isPracticeResultsOpen = false,
    onPracticeResultsToggle,
 }: Props) => {
+   const navigate = useNavigate()
    const isPractice = session.session_type.includes('Practice')
    const isQualifying = session.session_type.includes('Qualifying')
    // Give race timing columns the same minimum width as qualifying columns.
@@ -135,6 +138,7 @@ const SessionCard = ({
 
          <div
             aria-hidden={isPractice && !isPracticeResultsOpen}
+            inert={isPractice && !isPracticeResultsOpen}
             className={`grid transition-[grid-template-rows] duration-300 ease-in-out motion-reduce:transition-none ${!isPractice || isPracticeResultsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
          >
             <div className="min-h-0 overflow-hidden">
@@ -176,9 +180,13 @@ const SessionCard = ({
                      const qualifyingTimes = Array.isArray(result.duration) ? result.duration : []
 
                      return (
-                        <div
+                        <button
+                           type="button"
                            key={`${result.session_key}-${result.driver_number}`}
-                           className={`grid ${resultGridColumns} items-center gap-3 border-b py-2 last:border-b-0`}
+                           className={`grid ${resultGridColumns} w-full text-left items-center gap-3 border-b py-2 last:border-b-0 transform transition-all hover:bg-accent/80 cursor-pointer`}
+                           aria-label={`View ${driver?.full_name ?? `Driver ${result.driver_number}`} profile`}
+                           disabled={!driver}
+                           onClick={() => driver && navigate(`/driver/${session.year}/${getDriverSlug(driver.full_name)}`)}
                         >
                            <p className="text-center">{status}</p>
                            <p
@@ -208,7 +216,7 @@ const SessionCard = ({
                                  </p>
                               </>
                            )}
-                        </div>
+                        </button>
                      )
                   })}
                </CardFooter>

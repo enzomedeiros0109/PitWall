@@ -6,7 +6,7 @@ export const OpenF1DriverSchema = z.array(
     driver_number: z.number().int(),
     first_name: z.string(),
     full_name: z.string(),
-    headshot_url: z.string().url(),
+    headshot_url: z.string().url().nullable().optional(),
     last_name: z.string(),
     meeting_key: z.number().int(),
     name_acronym: z.string(),
